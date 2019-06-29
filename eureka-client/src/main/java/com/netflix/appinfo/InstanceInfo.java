@@ -48,7 +48,7 @@ import org.slf4j.LoggerFactory;
  * <code>@Auto</code> annotated fields are serialized as is; Other fields are
  * serialized as specified by the <code>@Serializer</code>.
  * </p>
- *
+ * 应用实例信息。Eureka-Client 向 Eureka-Server 注册该对象信息。注册成功后，可以被其他 Eureka-Client 发现。
  * @author Karthik Ranganathan, Greg Kim
  */
 @ProvidedBy(EurekaConfigBasedInstanceInfoProvider.class)

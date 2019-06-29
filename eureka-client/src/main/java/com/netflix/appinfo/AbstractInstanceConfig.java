@@ -41,15 +41,44 @@ public abstract class AbstractInstanceConfig implements EurekaInstanceConfig {
      */
     @Deprecated
     public static final String DEFAULT_NAMESPACE = CommonConstants.DEFAULT_CONFIG_NAMESPACE;
-    
+    /**
+     * 契约过期时间，单位：秒
+     */
     private static final int LEASE_EXPIRATION_DURATION_SECONDS = 90;
+    /**
+     * 租约续约频率，单位：秒。
+     */
     private static final int LEASE_RENEWAL_INTERVAL_SECONDS = 30;
+    /**
+     * 应用 https 端口关闭
+     */
     private static final boolean SECURE_PORT_ENABLED = false;
+    /**
+     * 应用 http 端口开启
+     */
     private static final boolean NON_SECURE_PORT_ENABLED = true;
+    /**
+     * 应用 http 端口
+     */
     private static final int NON_SECURE_PORT = 80;
+    /**
+     * 应用 https 端口
+     */
     private static final int SECURE_PORT = 443;
+    /**
+     * 应用初始化后开启
+     */
     private static final boolean INSTANCE_ENABLED_ON_INIT = false;
+    /**
+     *  主机信息
+     *  key：主机 IP 地址
+     *  value：主机名
+     *  {@link Pair 可以认为是一个KV的存储结构}
+     */
     private static final Pair<String, String> hostInfo = getHostInfo();
+    /**
+     * 数据中心信息
+     */
     private DataCenterInfo info = new DataCenterInfo() {
         @Override
         public Name getName() {
@@ -211,6 +240,19 @@ public abstract class AbstractInstanceConfig implements EurekaInstanceConfig {
         return hostInfo.first();
     }
 
+    /**
+     * 获取本地服务器的主机名和主机 IP 地址
+     * =====此处有坑，如果主机有有多网卡或者虚拟机网卡，获取可能会错误=====
+     * 解决方案：
+     *  1、手动配置本机的 hostname + etc/hosts 文件，从而映射主机名和 IP 地址。
+     *  2、使用spring-cloud-eureka-client 如果配置了eureka.instance.prefer-ip-address = true，spring会获取第一个非循环IP
+     *      如果Java无法确定主机名，则将IP地址发送给Eureka。只有设置主机名的明确方法是设置eureka.instance.hostname属性。
+     *      可以使用环境变量在运行时设置主机名 - 例如，eureka.instance.hostname=${HOST_NAME}。
+     *
+     * @link https://cloud.spring.io/spring-cloud-static/spring-cloud-netflix/2.1.2.RELEASE/single/spring-cloud-netflix.html#spring-cloud-eureka-server-prefer-ip-address
+     *
+     * @return  Pair<String, String>
+     */
     private static Pair<String, String> getHostInfo() {
         Pair<String, String> pair;
         try {
