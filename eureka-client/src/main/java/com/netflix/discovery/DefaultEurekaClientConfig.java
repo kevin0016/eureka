@@ -68,8 +68,17 @@ public class DefaultEurekaClientConfig implements EurekaClientConfig {
     public static final String DEFAULT_ZONE = "defaultZone";
     public static final String URL_SEPARATOR = "\\s*,\\s*";
 
+    /**
+     * 命名空间
+     */
     private final String namespace;
+    /**
+     * 配置文件对象
+     */
     private final DynamicPropertyFactory configInstance;
+    /**
+     * HTTP 传输配置
+     */
     private final EurekaTransportConfig transportConfig;
 
     public DefaultEurekaClientConfig() {
@@ -77,17 +86,19 @@ public class DefaultEurekaClientConfig implements EurekaClientConfig {
     }
 
     public DefaultEurekaClientConfig(String namespace) {
+        // 设置 namespace，为 "." 结尾
         this.namespace = namespace.endsWith(".")
                 ? namespace
                 : namespace + ".";
-
+        // 初始化 配置文件对象
         this.configInstance = Archaius1Utils.initConfig(CommonConstants.CONFIG_FILE_NAME);
+        // 创建 HTTP 传输配置
         this.transportConfig = new DefaultEurekaTransportConfig(namespace, configInstance);
     }
 
     /*
      * (non-Javadoc)
-     *
+     * 从 Eureka-Server 拉取注册信息频率，单位：秒。默认：30 秒。
      * @see
      * com.netflix.discovery.EurekaClientConfig#getRegistryFetchIntervalSeconds
      * ()
@@ -100,7 +111,7 @@ public class DefaultEurekaClientConfig implements EurekaClientConfig {
 
     /*
      * (non-Javadoc)
-     *
+     * 向 Eureka-Server 同步应用实例信息变化频率，单位：秒。
      * @see com.netflix.discovery.EurekaClientConfig#
      * getInstanceInfoReplicationIntervalSeconds()
      */
@@ -110,6 +121,10 @@ public class DefaultEurekaClientConfig implements EurekaClientConfig {
                 namespace + REGISTRATION_REPLICATION_INTERVAL_KEY, 30).get();
     }
 
+    /**
+     * 向 Eureka-Server 同步应用信息变化初始化延迟，单位：秒。
+     * @return
+     */
     @Override
     public int getInitialInstanceInfoReplicationIntervalSeconds() {
         return configInstance.getIntProperty(
@@ -118,7 +133,7 @@ public class DefaultEurekaClientConfig implements EurekaClientConfig {
 
     /*
      * (non-Javadoc)
-     *
+     * 轮询获取 Eureka-Server 地址变更频率，单位：秒。默认：300 秒。
      * @see com.netflix.discovery.EurekaClientConfig#getDnsPollIntervalSeconds()
      */
     @Override
@@ -196,7 +211,7 @@ public class DefaultEurekaClientConfig implements EurekaClientConfig {
 
     /*
      * (non-Javadoc)
-     *
+     * 获取备份注册中心实现类。当 Eureka-Client 启动时，无法从 Eureka-Server 读取注册信息（可能挂了），从备份注册中心读取注册信息。目前 Eureka-Client 未提供合适的实现。
      * @see com.netflix.discovery.EurekaClientConfig#getBackupRegistryImpl()
      */
     @Override
@@ -231,7 +246,7 @@ public class DefaultEurekaClientConfig implements EurekaClientConfig {
 
     /*
      * (non-Javadoc)
-     *
+     * Eureka-Server 的 URL Context 。
      * @see com.netflix.discovery.EurekaClientConfig#getDSServerURLContext()
      */
     @Override
@@ -244,7 +259,7 @@ public class DefaultEurekaClientConfig implements EurekaClientConfig {
 
     /*
      * (non-Javadoc)
-     *
+     * Eureka-Server 的端口。
      * @see com.netflix.discovery.EurekaClientConfig#getDSServerPort()
      */
     @Override
@@ -257,7 +272,7 @@ public class DefaultEurekaClientConfig implements EurekaClientConfig {
 
     /*
      * (non-Javadoc)
-     *
+     * Eureka-Server 的 DNS 名。
      * @see com.netflix.discovery.EurekaClientConfig#getDSServerDomain()
      */
     @Override
@@ -271,7 +286,7 @@ public class DefaultEurekaClientConfig implements EurekaClientConfig {
 
     /*
      * (non-Javadoc)
-     *
+     * 是否使用 DNS 方式获取 Eureka-Server URL 地址。
      * @see com.netflix.discovery.EurekaClientConfig#shouldUseDns()
      */
     @Override
@@ -282,7 +297,7 @@ public class DefaultEurekaClientConfig implements EurekaClientConfig {
 
     /*
      * (non-Javadoc)
-     *
+     * 是否向 Eureka-Server 注册自身服务。
      * @see
      * com.netflix.discovery.EurekaClientConfig#getDiscoveryRegistrationEnabled()
      */
@@ -294,7 +309,7 @@ public class DefaultEurekaClientConfig implements EurekaClientConfig {
 
     /*
      * (non-Javadoc)
-     *
+     * 是否向 Eureka-Server 取消注册自身服务，当进程关闭时。
      * @see
      * com.netflix.discovery.EurekaClientConfig#shouldUnregisterOnShutdown()
      */
@@ -306,7 +321,7 @@ public class DefaultEurekaClientConfig implements EurekaClientConfig {
 
     /*
      * (non-Javadoc)
-     *
+     * 优先使用相同区( zone )的 Eureka-Server。
      * @see com.netflix.discovery.EurekaClientConfig#shouldPreferSameZoneDS()
      */
     @Override
@@ -350,7 +365,7 @@ public class DefaultEurekaClientConfig implements EurekaClientConfig {
 
     /*
      * (non-Javadoc)
-     *
+     *  Eureka-Client 所在区域( region )。
      * @see com.netflix.discovery.EurekaClientConfig#getRegion()
      */
     @Override
@@ -361,7 +376,7 @@ public class DefaultEurekaClientConfig implements EurekaClientConfig {
 
     /*
      * (non-Javadoc)
-     *
+     *  Eureka-Client 所在地区( region ) 可用区( zone )集合。该返回值参数虽然是数组，第一个元素代表其所在的可用区
      * @see com.netflix.discovery.EurekaClientConfig#getAvailabilityZones()
      */
     @Override
@@ -374,7 +389,7 @@ public class DefaultEurekaClientConfig implements EurekaClientConfig {
 
     /*
      * (non-Javadoc)
-     *
+     * Eureka-Server 的 URL 集合。
      * @see
      * com.netflix.discovery.EurekaClientConfig#getEurekaServerServiceUrls()
      */
@@ -396,7 +411,7 @@ public class DefaultEurekaClientConfig implements EurekaClientConfig {
 
     /*
      * (non-Javadoc)
-     *
+     * 是否过滤，只获取状态为开启( Up )的应用实例集合。
      * @see
      * com.netflix.discovery.EurekaClientConfig#shouldFilterOnlyUpInstances()
      */
@@ -419,6 +434,10 @@ public class DefaultEurekaClientConfig implements EurekaClientConfig {
                 .get();
     }
 
+    /**
+     * 是否从 Eureka-Server 拉取注册信息。
+     * @return
+     */
     @Override
     public boolean shouldFetchRegistry() {
         return configInstance.getBooleanProperty(
@@ -427,7 +446,7 @@ public class DefaultEurekaClientConfig implements EurekaClientConfig {
 
     /*
      * (non-Javadoc)
-     *
+     * 只获得一个 vipAddress 对应的应用实例们的注册信息。
      * @see com.netflix.discovery.EurekaClientConfig#getRegistryRefreshSingleVipAddress()
      */
     @Override
@@ -438,7 +457,7 @@ public class DefaultEurekaClientConfig implements EurekaClientConfig {
 
     /**
      * (non-Javadoc)
-     *
+     * 心跳执行线程池大小
      * @see com.netflix.discovery.EurekaClientConfig#getHeartbeatExecutorThreadPoolSize()
      */
     @Override
@@ -447,6 +466,10 @@ public class DefaultEurekaClientConfig implements EurekaClientConfig {
                 namespace + HEARTBEAT_THREADPOOL_SIZE_KEY, Values.DEFAULT_EXECUTOR_THREAD_POOL_SIZE).get();
     }
 
+    /**
+     * 心跳执行超时后的延迟重试的时间
+     * @return
+     */
     @Override
     public int getHeartbeatExecutorExponentialBackOffBound() {
         return configInstance.getIntProperty(
@@ -455,7 +478,7 @@ public class DefaultEurekaClientConfig implements EurekaClientConfig {
 
     /**
      * (non-Javadoc)
-     *
+     * 注册信息缓存刷新线程池大小。
      * @see com.netflix.discovery.EurekaClientConfig#getCacheRefreshExecutorThreadPoolSize()
      */
     @Override
@@ -464,6 +487,10 @@ public class DefaultEurekaClientConfig implements EurekaClientConfig {
                 namespace + CACHEREFRESH_THREADPOOL_SIZE_KEY, Values.DEFAULT_EXECUTOR_THREAD_POOL_SIZE).get();
     }
 
+    /**
+     * 注册信息缓存刷新执行超时后的延迟重试的时间
+     * @return
+     */
     @Override
     public int getCacheRefreshExecutorExponentialBackOffBound() {
         return configInstance.getIntProperty(
