@@ -37,13 +37,31 @@ public class Lease<T> {
     };
 
     public static final int DEFAULT_DURATION_IN_SECS = 90;
-
+    /**
+     * 实体 租约的持有者。在 Eureka-Server 里，暂时只有 InstanceInfo 使用。
+     */
     private T holder;
+    /**
+     * 取消注册时间戳
+     */
     private long evictionTimestamp;
+    /**
+     * 注册时间戳
+     */
     private long registrationTimestamp;
+    /**
+     * 开始服务时间戳
+     */
     private long serviceUpTimestamp;
+    /**
+     * 最后更新时间戳 每次续租时，更新该时间戳
+     * 老版本有一个专门的set方法，此处直接移到了构造方法里面
+     */
     // Make it volatile so that the expiration task would see this quicker
     private volatile long lastUpdateTimestamp;
+    /**
+     * 租约持续时长，单位：毫秒 当租约过久未续租，即当前时间 - lastUpdatedTimestamp > duration 时，租约过期
+     */
     private long duration;
 
     public Lease(T r, int durationInSecs) {
@@ -76,8 +94,10 @@ public class Lease<T> {
     /**
      * Mark the service as up. This will only take affect the first time called,
      * subsequent calls will be ignored.
+     * 注册应用实例信息会使用到
      */
     public void serviceUp() {
+        // 第一次有效
         if (serviceUpTimestamp == 0) {
             serviceUpTimestamp = System.currentTimeMillis();
         }
@@ -85,6 +105,7 @@ public class Lease<T> {
 
     /**
      * Set the leases service UP timestamp.
+     * 注册应用实例信息会使用到
      */
     public void setServiceUpTimestamp(long serviceUpTimestamp) {
         this.serviceUpTimestamp = serviceUpTimestamp;
