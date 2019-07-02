@@ -1240,6 +1240,7 @@ public class InstanceInfo {
     /**
      * Sets the dirty flag so that the instance information can be carried to
      * the discovery server on the next heartbeat.
+     * 设置脏标志，以便可以在下一个心跳上将实例信息传送到发现服务器。
      */
     public synchronized void setIsDirty() {
         isInstanceInfoDirty = true;

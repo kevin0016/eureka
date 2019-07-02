@@ -208,7 +208,10 @@ public class ApplicationInfoManager {
      * Refetches the hostname to check if it has changed. If it has, the entire
      * <code>DataCenterInfo</code> is refetched and passed on to the eureka
      * server on next heartbeat.
-     *
+     *关注应用实例信息的 hostName 、 ipAddr 、 dataCenterInfo 属性的变化。
+     * 一般情况下，我们使用的是非 RefreshableInstanceConfig 实现的配置类( 一般是 MyDataCenterInstanceConfig )，
+     * 因为 AbstractInstanceConfig.hostInfo 是静态属性，即使本机修改了 IP 等信息，Eureka-Client 进程也不会感知到。
+     * TODO[0022]：springcloud 在此处的实现方式不太一样
      * see {@link InstanceInfo#getHostName()} for explanation on why the hostname is used as the default address
      */
     public void refreshDataCenterInfoIfRequired() {
@@ -259,6 +262,9 @@ public class ApplicationInfoManager {
         instanceInfo.setIsDirty();
     }
 
+    /**
+     * 刷新租约相关信息
+     */
     public void refreshLeaseInfoIfRequired() {
         LeaseInfo leaseInfo = instanceInfo.getLeaseInfo();
         if (leaseInfo == null) {
