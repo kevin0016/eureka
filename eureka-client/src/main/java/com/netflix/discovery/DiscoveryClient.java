@@ -149,6 +149,9 @@ public class DiscoveryClient implements EurekaClient {
     private final Provider<HealthCheckHandler> healthCheckHandlerProvider;
     private final Provider<HealthCheckCallback> healthCheckCallbackProvider;
     private final PreRegistrationHandler preRegistrationHandler;
+    /**
+     * 这个是注册表本地缓存
+     */
     private final AtomicReference<Applications> localRegionApps = new AtomicReference<Applications>();
     private final Lock fetchRegistryUpdateLock = new ReentrantLock();
     // monotonically increasing generation counter to ensure stale threads do not reset registry to an older version
@@ -167,6 +170,9 @@ public class DiscoveryClient implements EurekaClient {
     private final AtomicReference<HealthCheckHandler> healthCheckHandlerRef = new AtomicReference<>();
     private volatile Map<String, Applications> remoteRegionVsApps = new ConcurrentHashMap<>();
     private volatile InstanceInfo.InstanceStatus lastRemoteInstanceStatus = InstanceInfo.InstanceStatus.UNKNOWN;
+    /**
+     * Eureka 事件监听器
+     */
     private final CopyOnWriteArraySet<EurekaEventListener> eventListeners = new CopyOnWriteArraySet<>();
 
     private String appPathIdentifier;
@@ -348,6 +354,7 @@ public class DiscoveryClient implements EurekaClient {
         this.backupRegistryProvider = backupRegistryProvider;
         this.endpointRandomizer = endpointRandomizer;
         this.urlRandomizer = new EndpointUtils.InstanceInfoBasedUrlRandomizer(instanceInfo);
+        //初始化应用集合本地缓存
         localRegionApps.set(new Applications());
 
         fetchRegistryGeneration = new AtomicLong(0);
@@ -390,6 +397,7 @@ public class DiscoveryClient implements EurekaClient {
         }
 
         try {
+            // 初始化线程池
             // default size of 2 - 1 each for heartbeat and cacheRefresh
             scheduler = Executors.newScheduledThreadPool(2,
                     new ThreadFactoryBuilder()
@@ -431,7 +439,7 @@ public class DiscoveryClient implements EurekaClient {
         } catch (Throwable e) {
             throw new RuntimeException("Failed to initialize DiscoveryClient!", e);
         }
-
+        // 从 Eureka-Server 拉取注册信息
         if (clientConfig.shouldFetchRegistry() && !fetchRegistry(false)) {
             fetchRegistryFromBackup();
         }
@@ -452,6 +460,7 @@ public class DiscoveryClient implements EurekaClient {
             }
         }
 
+        //初始化定时任务
         // finally, init the schedule tasks (e.g. cluster resolvers, heartbeat, instanceInfo replicator, fetch
         initScheduledTasks();
 
@@ -968,10 +977,11 @@ public class DiscoveryClient implements EurekaClient {
         Stopwatch tracer = FETCH_REGISTRY_TIMER.start();
 
         try {
+            // 获取 本地缓存的注册的应用实例集合
             // If the delta is disabled or if it is the first time, get all
             // applications
             Applications applications = getApplications();
-
+            // 全量获取
             if (clientConfig.shouldDisableDelta()
                     || (!Strings.isNullOrEmpty(clientConfig.getRegistryRefreshSingleVipAddress()))
                     || forceFullRegistryFetch
@@ -986,11 +996,15 @@ public class DiscoveryClient implements EurekaClient {
                 logger.info("Registered Applications size is zero : {}",
                         (applications.getRegisteredApplications().size() == 0));
                 logger.info("Application version is -1: {}", (applications.getVersion() == -1));
+                // 执行 全量获取
                 getAndStoreFullRegistry();
             } else {
+                // 执行 增量获取
                 getAndUpdateDelta(applications);
             }
+            // 设置 应用集合 hashcode
             applications.setAppsHashCode(applications.getReconcileHashCode());
+            // 打印 本地缓存的注册的应用实例数量
             logTotalInstances();
         } catch (Throwable e) {
             logger.error(PREFIX + "{} - was unable to refresh its cache! status = {}", appPathIdentifier, e.getMessage(), e);
@@ -1069,7 +1083,7 @@ public class DiscoveryClient implements EurekaClient {
         long currentUpdateGeneration = fetchRegistryGeneration.get();
 
         logger.info("Getting all instance registry info from the eureka server");
-
+        // 全量获取注册信息
         Applications apps = null;
         EurekaHttpResponse<Applications> httpResponse = clientConfig.getRegistryRefreshSingleVipAddress() == null
                 ? eurekaTransport.queryClient.getApplications(remoteRegionsRef.get())
@@ -1078,7 +1092,7 @@ public class DiscoveryClient implements EurekaClient {
             apps = httpResponse.getEntity();
         }
         logger.info("The response status is {}", httpResponse.getStatusCode());
-
+        // 设置到本地缓存
         if (apps == null) {
             logger.error("The application is null for some reason. Not storing this information");
         } else if (fetchRegistryGeneration.compareAndSet(currentUpdateGeneration, currentUpdateGeneration + 1)) {
@@ -1271,6 +1285,7 @@ public class DiscoveryClient implements EurekaClient {
      * Initializes all scheduled tasks.
      */
     private void initScheduledTasks() {
+        // 向 Eureka-Server 心跳（续租）执行器
         if (clientConfig.shouldFetchRegistry()) {
             // registry cache refresh timer
             int registryFetchIntervalSeconds = clientConfig.getRegistryFetchIntervalSeconds();
@@ -1506,10 +1521,12 @@ public class DiscoveryClient implements EurekaClient {
 
             boolean success = fetchRegistry(remoteRegionsModified);
             if (success) {
+                // 设置 注册信息的应用实例数
                 registrySize = localRegionApps.get().size();
+                // 设置 最后获取注册信息时间
                 lastSuccessfulRegistryFetchTimestamp = System.currentTimeMillis();
             }
-
+            // 打印日志
             if (logger.isDebugEnabled()) {
                 StringBuilder allAppsHashCodes = new StringBuilder();
                 allAppsHashCodes.append("Local region apps hashcode: ");
@@ -1631,6 +1648,8 @@ public class DiscoveryClient implements EurekaClient {
      * Subclasses may override this method to implement custom behavior if needed.
      */
     protected void onCacheRefreshed() {
+        //你可以实现自定义的事件监听器监听 CacheRefreshedEvent 事件，以达到持久化最新的注册信息到存储器( 例如，本地文件 )，
+        // 通过这样的方式，配合实现 BackupRegistry 接口读取存储器。
         fireEvent(new CacheRefreshedEvent());
     }
 

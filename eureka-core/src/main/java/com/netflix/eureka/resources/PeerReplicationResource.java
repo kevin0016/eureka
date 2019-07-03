@@ -79,6 +79,7 @@ public class PeerReplicationResource {
     @POST
     public Response batchReplication(ReplicationList replicationList) {
         try {
+            // 逐个同步操作任务处理，并将处理结果( ReplicationInstanceResponse ) 合并到 ReplicationListResponse 。
             ReplicationListResponse batchResponse = new ReplicationListResponse();
             for (ReplicationInstance instanceInfo : replicationList.getReplicationList()) {
                 try {

@@ -628,7 +628,7 @@ public class PeerAwareInstanceRegistryImpl extends AbstractInstanceRegistry impl
             if (peerEurekaNodes == Collections.EMPTY_LIST || isReplication) {
                 return;
             }
-
+            //这就是Eureka比较难受的地方，for循环的方式进行同步，还不是异步的，集群节点过多的时候无法控制同步完成时间
             for (final PeerEurekaNode node : peerEurekaNodes.getPeerEurekaNodes()) {
                 // If the url represents this host, do not replicate to yourself.
                 if (peerEurekaNodes.isThisMyUrl(node.getServiceUrl())) {

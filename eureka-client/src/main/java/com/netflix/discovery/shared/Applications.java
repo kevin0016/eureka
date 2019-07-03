@@ -57,6 +57,8 @@ import com.thoughtworks.xstream.annotations.XStreamImplicit;
  * {@link EurekaClientConfig#shouldFilterOnlyUpInstances()}.
  * </p>
  *
+ * 注册列表，包含注册到当前注册中心上的所有实例信息，每个注册中心在内存中保持一份数据。在Applications中持有Application的队列
+ *
  * @author Karthik Ranganathan
  *
  */
